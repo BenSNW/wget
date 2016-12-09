@@ -4,7 +4,9 @@ import java.io.File;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.github.axet.wget.info.BrowserInfo;
 import com.github.axet.wget.info.DownloadInfo;
+import com.github.axet.wget.info.URLInfo;
 import com.github.axet.wget.info.DownloadInfo.Part;
 import com.github.axet.wget.info.DownloadInfo.Part.States;
 import com.github.axet.wget.info.ex.DownloadMultipartError;
@@ -45,7 +47,8 @@ public class ExampleApplicationManaged {
                         // finish speed calculation by adding remaining bytes speed
                         speedInfo.end(info.getCount());
                         // print speed
-                        System.out.println(String.format("%s average speed (%s)", info.getState(), formatSpeed(speedInfo.getAverageSpeed())));
+                        System.out.println(String.format("%s average speed (%s)", info.getState(),
+                                formatSpeed(speedInfo.getAverageSpeed())));
                         break;
                     case RETRYING:
                         System.out.println(info.getState() + " " + info.getDelay());
@@ -59,9 +62,18 @@ public class ExampleApplicationManaged {
                             String parts = "";
 
                             for (Part p : info.getParts()) {
-                                if (p.getState().equals(States.DOWNLOADING)) {
+                                switch (p.getState()) {
+                                case DOWNLOADING:
                                     parts += String.format("Part#%d(%.2f) ", p.getNumber(),
                                             p.getCount() / (float) p.getLength());
+                                    break;
+                                case ERROR:
+                                case RETRYING:
+                                    parts += String.format("Part#%d(%s) ", p.getNumber(), p.getException().getMessage()
+                                            + " r:" + p.getRetry() + " d:" + p.getDelay());
+                                    break;
+                                default:
+                                    break;
                                 }
                             }
 

@@ -6,15 +6,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.github.axet.wget.info.DownloadInfo;
 
 public abstract class Direct {
+    /**
+     * size of read buffer
+     */
+    public static int BUF_SIZE = 4 * 1024;
 
     File target = null;
 
     DownloadInfo info;
-
-    /**
-     * size of read buffer
-     */
-    static public final int BUF_SIZE = 4 * 1024;
 
     /**
      * 
@@ -36,5 +35,4 @@ public abstract class Direct {
      *            progress notify call
      */
     abstract public void download(AtomicBoolean stop, Runnable notify);
-
 }

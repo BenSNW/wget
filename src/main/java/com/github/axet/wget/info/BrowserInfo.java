@@ -2,7 +2,6 @@ package com.github.axet.wget.info;
 
 import java.net.URL;
 
-
 /**
  * BrowserInfo - keep all information about browser
  * 
@@ -10,10 +9,14 @@ import java.net.URL;
  * 
  */
 public class BrowserInfo {
-    static public final String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36";
+    static public String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36";
 
-    private String userAgent = USER_AGENT;
+    private String userAgent;
     private URL referer;
+
+    public BrowserInfo() {
+        userAgent = USER_AGENT;
+    }
 
     synchronized public String getUserAgent() {
         return userAgent;

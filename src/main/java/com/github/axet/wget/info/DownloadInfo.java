@@ -56,6 +56,10 @@ public class DownloadInfo extends URLInfo {
          * retrying delay;
          */
         private int delay;
+        /**
+         * retry count
+         */
+        private int retry;
 
         synchronized public long getStart() {
             return start;
@@ -124,6 +128,14 @@ public class DownloadInfo extends URLInfo {
             this.delay = delay;
             this.exception = e;
         }
+
+        synchronized public int getRetry() {
+            return retry;
+        }
+
+        synchronized public void setRetry(int retry) {
+            this.retry = retry;
+        }
     }
 
     /**
@@ -143,7 +155,6 @@ public class DownloadInfo extends URLInfo {
 
     public DownloadInfo(URL source, ProxyInfo p) {
         super(source);
-
         setProxy(p);
     }
 
@@ -155,13 +166,11 @@ public class DownloadInfo extends URLInfo {
     synchronized public boolean multipart() {
         if (!getRange())
             return false;
-
         return parts != null;
     }
 
     synchronized public void reset() {
         setCount(0);
-
         if (parts != null) {
             for (Part p : parts) {
                 p.setCount(0);
@@ -171,11 +180,10 @@ public class DownloadInfo extends URLInfo {
     }
 
     /**
-     * for multi part download, call every time when we need to know totol download progress
+     * for multi part download, call every time when we need to know total download progress
      */
     synchronized public void calculate() {
         setCount(0);
-
         for (Part p : getParts())
             setCount(getCount() + p.getCount());
     }
@@ -260,7 +268,6 @@ public class DownloadInfo extends URLInfo {
             // one source has a have old is not
             return false;
         }
-
         return true;
     }
 

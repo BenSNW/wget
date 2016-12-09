@@ -20,14 +20,17 @@ import com.github.axet.wget.info.ex.DownloadRetry;
 import com.github.axet.wget.info.ex.ProxyAuth;
 
 public class RetryWrap {
-    // you can change those values once at program start
-    public static int RETRY_DELAY = 10;
-    public static int RETRY_SLEEP = 1000;
+    public static int RETRY_DELAY = 3; // 0 - no delay
+    public static int RETRY_COUNT = 5; // -1 - infinite
 
     public interface WrapReturn<T> {
         public void proxy();
 
-        public void retry(int delay, Throwable e);
+        public void resume();
+
+        public void error(Throwable e);
+
+        public boolean retry(int delay, Throwable e);
 
         public void moved(URL url);
 
@@ -37,7 +40,11 @@ public class RetryWrap {
     public interface Wrap {
         public void proxy();
 
-        public void retry(int delay, Throwable e);
+        public void resume();
+
+        public void error(Throwable e);
+
+        public boolean retry(int delay, Throwable e);
 
         public void moved(URL url);
 
@@ -49,21 +56,20 @@ public class RetryWrap {
             throw new DownloadInterruptedError("stop");
         if (Thread.currentThread().isInterrupted())
             throw new DownloadInterruptedError("interrrupted");
-
         r.moved(e.getMoved());
     }
 
     static <T> void retry(AtomicBoolean stop, WrapReturn<T> r, RuntimeException e) {
+        r.error(e);
         for (int i = RETRY_DELAY; i >= 0; i--) {
-            r.retry(i, e);
-
+            if (!r.retry(i, e))
+                throw new DownloadError(e);
             if (stop.get())
                 throw new DownloadInterruptedError("stop");
             if (Thread.currentThread().isInterrupted())
                 throw new DownloadInterruptedError("interrrupted");
-
             try {
-                Thread.sleep(RETRY_SLEEP);
+                Thread.sleep(1000);
             } catch (InterruptedException e1) {
                 throw new DownloadInterruptedError(e1);
             }
@@ -76,7 +82,6 @@ public class RetryWrap {
                 throw new DownloadInterruptedError("stop");
             if (Thread.currentThread().isInterrupted())
                 throw new DownloadInterruptedError("interrupted");
-
             try {
                 try {
                     try {
@@ -149,8 +154,18 @@ public class RetryWrap {
             }
 
             @Override
-            public void retry(int delay, Throwable e) {
-                r.retry(delay, e);
+            public void resume() {
+                r.resume();
+            }
+
+            @Override
+            public void error(Throwable e) {
+                r.error(e);
+            }
+
+            @Override
+            public boolean retry(int delay, Throwable e) {
+                return r.retry(delay, e);
             }
 
             @Override
@@ -186,5 +201,13 @@ public class RetryWrap {
             // HTTP Error 416 - Requested Range Not Satisfiable
             throw new DownloadIOCodeError(416);
         }
+    }
+
+    public static boolean retry(int r) {
+        if (RetryWrap.RETRY_COUNT > 0) { // -1 - infinite
+            if (r > RetryWrap.RETRY_COUNT)
+                return false;
+        }
+        return true;
     }
 }

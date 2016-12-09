@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.URLInfo;
+import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class DirectSingle extends Direct {
@@ -35,9 +36,8 @@ public class DirectSingle extends Direct {
      *            progress notify call
      * @throws IOException
      */
-    void downloadPart(DownloadInfo info, AtomicBoolean stop, Runnable notify) throws IOException {
+    void downloadPart(RetryWrap.Wrap w, DownloadInfo info, AtomicBoolean stop, Runnable notify) throws IOException {
         RandomAccessFile fos = null;
-
         try {
             HttpURLConnection conn = info.openConnection();
 
@@ -55,6 +55,8 @@ public class DirectSingle extends Direct {
             BufferedInputStream binaryreader = new BufferedInputStream(conn.getInputStream());
 
             while ((read = binaryreader.read(bytes)) > 0) {
+                w.resume();
+
                 fos.write(bytes, 0, read);
 
                 info.setCount(info.getCount() + read);
@@ -77,26 +79,37 @@ public class DirectSingle extends Direct {
     public void download(final AtomicBoolean stop, final Runnable notify) {
         info.setState(URLInfo.States.DOWNLOADING);
         notify.run();
-
         try {
             RetryWrap.wrap(stop, new RetryWrap.Wrap() {
+                int retry = 0;
+
                 @Override
                 public void proxy() {
                     info.getProxy().set();
                 }
 
                 @Override
-                public void download() throws IOException {
-                    info.setState(URLInfo.States.DOWNLOADING);
-                    notify.run();
-
-                    downloadPart(info, stop, notify);
+                public void resume() {
+                    retry = 0;
                 }
 
                 @Override
-                public void retry(int delay, Throwable e) {
+                public void error(Throwable e) {
+                    retry = retry + 1;
+                }
+
+                @Override
+                public void download() throws IOException {
+                    info.setState(URLInfo.States.DOWNLOADING);
+                    notify.run();
+                    downloadPart(this, info, stop, notify);
+                }
+
+                @Override
+                public boolean retry(int delay, Throwable e) {
                     info.setDelay(delay, e);
                     notify.run();
+                    return RetryWrap.retry(retry);
                 }
 
                 @Override
@@ -105,25 +118,22 @@ public class DirectSingle extends Direct {
                     notify.run();
                 }
             });
-
             info.setState(URLInfo.States.DONE);
             notify.run();
         } catch (DownloadInterruptedError e) {
             info.setState(URLInfo.States.STOP);
             notify.run();
-
             throw e;
         } catch (RuntimeException e) {
             info.setState(URLInfo.States.ERROR);
             notify.run();
-
             throw e;
         }
     }
 
     /**
-     * check existing file for download resume. for single download it will
-     * check file dose not exist or zero size. so we can resume download.
+     * check existing file for download resume. for single download it will check file dose not exist or zero size. so
+     * we can resume download.
      * 
      * @param info
      *            download info
@@ -134,12 +144,10 @@ public class DirectSingle extends Direct {
     public static boolean canResume(DownloadInfo info, File targetFile) {
         if (info.getCount() != 0)
             return false;
-
         if (targetFile.exists()) {
             if (targetFile.length() != 0)
                 return false;
         }
-
         return true;
     }
 }
