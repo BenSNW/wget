@@ -16,9 +16,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.github.axet.wget.info.DownloadInfo;
+import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class WGet {
+
+    public static final String UTF8 = "UTF-8";
 
     private DownloadInfo info;
 
@@ -99,7 +102,6 @@ public class WGet {
     public static File calcName(URL source, File target) {
         DownloadInfo info = new DownloadInfo(source);
         info.extract();
-
         return calcName(info, target);
     }
 
@@ -118,7 +120,7 @@ public class WGet {
             name = new File(info.getSource().getPath()).getName();
 
         try {
-            name = URLDecoder.decode(name, "UTF-8");
+            name = URLDecoder.decode(name, UTF8);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -141,7 +143,6 @@ public class WGet {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
             targetFile = target;
         }
 
@@ -203,6 +204,7 @@ public class WGet {
     public static String getHtml(final DownloadInfo source, final HtmlLoader load, final AtomicBoolean stop) {
         String html = RetryWrap.wrap(stop, new RetryWrap.WrapReturn<String>() {
             DownloadInfo info = source;
+            int retry = 0;
 
             @Override
             public void proxy() {
@@ -210,16 +212,25 @@ public class WGet {
             }
 
             @Override
-            public void retry(int delay, Throwable e) {
+            public void resume() {
+                retry = 0;
+            }
+
+            @Override
+            public void error(Throwable e) {
+                retry = retry + 1;
+            }
+
+            @Override
+            public boolean retry(int delay, Throwable e) {
                 load.notifyRetry(delay, e);
+                return RetryWrap.retry(retry);
             }
 
             @Override
             public String download() throws IOException {
                 HttpURLConnection conn = info.openConnection();
-
                 RetryWrap.check(conn);
-
                 return getHtml(conn, stop);
             }
 
@@ -228,12 +239,9 @@ public class WGet {
                 DownloadInfo old = info;
                 info = new DownloadInfo(url);
                 info.setReferer(old.getReferer());
-
                 load.notifyMoved();
             }
-
         });
-
         return html;
     }
 
@@ -251,7 +259,7 @@ public class WGet {
         }
 
         if (enc == null)
-            enc = "UTF-8";
+            enc = UTF8;
 
         BufferedReader br = new BufferedReader(new InputStreamReader(is, enc));
 
@@ -261,13 +269,11 @@ public class WGet {
         while ((line = br.readLine()) != null) {
             contents.append(line);
             contents.append("\n");
-
             if (stop.get())
                 throw new DownloadInterruptedError("stop");
             if (Thread.currentThread().isInterrupted())
                 throw new DownloadInterruptedError("interrupted");
         }
-
         return contents.toString();
     }
 }

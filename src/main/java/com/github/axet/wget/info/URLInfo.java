@@ -10,10 +10,9 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import com.github.axet.wget.RetryWrap;
 import com.github.axet.wget.WGet;
+import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadRetry;
 
 /**
@@ -23,6 +22,16 @@ import com.github.axet.wget.info.ex.DownloadRetry;
  * 
  */
 public class URLInfo extends BrowserInfo {
+    /**
+     * connect socket timeout
+     */
+    public static int CONNECT_TIMEOUT = 10000;
+
+    /**
+     * read socket timeout
+     */
+    public static int READ_TIMEOUT = 10000;
+
     /**
      * source url
      */
@@ -78,16 +87,6 @@ public class URLInfo extends BrowserInfo {
 
     private ProxyInfo proxy;
 
-    /**
-     * connect socket timeout
-     */
-    static public final int CONNECT_TIMEOUT = 10000;
-
-    /**
-     * read socket timeout
-     */
-    static public final int READ_TIMEOUT = 10000;
-
     public URLInfo(URL source) {
         this.source = source;
     }
@@ -130,10 +129,21 @@ public class URLInfo extends BrowserInfo {
 
             conn = RetryWrap.wrap(stop, new RetryWrap.WrapReturn<HttpURLConnection>() {
                 URL url = source;
+                int retry = 0;
 
                 @Override
                 public void proxy() {
                     getProxy().set();
+                }
+
+                @Override
+                public void resume() {
+                    retry = 0;
+                }
+
+                @Override
+                public void error(Throwable e) {
+                    retry = retry + 1;
                 }
 
                 @Override
@@ -155,7 +165,11 @@ public class URLInfo extends BrowserInfo {
                 }
 
                 HttpURLConnection meta(HttpURLConnection conn) throws IOException {
-                    String[] values = (conn.getContentType()==null? "" : conn.getContentType()).split(";");
+                    String ct = conn.getContentType();
+                    if (ct == null)
+                        return conn;
+
+                    String[] values = ct.split(";");
                     String contentType = values[0];
 
                     if (contentType.equals("text/html")) {
@@ -191,9 +205,10 @@ public class URLInfo extends BrowserInfo {
                 }
 
                 @Override
-                public void retry(int d, Throwable ee) {
+                public boolean retry(int d, Throwable ee) {
                     setDelay(d, ee);
                     notify.run();
+                    return RetryWrap.retry(retry);
                 }
 
                 @Override

@@ -4,13 +4,17 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.github.axet.wget.info.BrowserInfo;
+import com.github.axet.wget.info.DownloadInfo;
+import com.github.axet.wget.info.URLInfo;
+
 public class ExampleDirectDownload {
 
     public static void main(String[] args) {
         try {
-            // choise internet url (ftp, http)
+            // choice internet url (ftp, http)
             URL url = new URL("https://sourceforge.net/projects/actualizadorjlojch/files/2.2/ActualizadorJLOJCH.jar");
-            // choise target folder or filename "/Users/axet/Downloads/ap61.ram"
+            // choice target folder or filename "/Users/axet/Downloads/ap61.ram"
             File target = new File("/Users/axet/Downloads/");
             // initialize wget object
             WGet w = new WGet(url, target);

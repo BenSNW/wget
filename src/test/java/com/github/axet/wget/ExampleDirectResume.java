@@ -10,13 +10,14 @@ public class ExampleDirectResume {
 
     public static void main(String[] args) {
         try {
-            // choise internet url (ftp, http)
+            // choice internet url (ftp, http)
             URL url = new URL("http://download.virtualbox.org/virtualbox/4.3.28/VirtualBox-4.3.28-100309-OSX.dmg");
-            // choise target folder or filename "/Users/axet/Downloads/ap61.ram"
-            File targetFile = new File("/Users/x/Downloads/vb.dmg");
+            // choice target folder or filename "/Users/axet/Downloads/ap61.ram"
+            File targetFile = new File("/Users/axet/Downloads/VirtualBox-4.3.28-100309-OSX.dmg");
             // get file remote information
             DownloadInfo info = new DownloadInfo(url);
             info.extract();
+            info.enableMultipart();
             // initialize wget object
             WGet w = new WGet(info, targetFile);
             // single thread download. will return here only when file download
