@@ -15,6 +15,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("DownloadInfo")
 public class DownloadInfo extends URLInfo {
+    private static final long serialVersionUID = 1952592930771906713L;
 
     public static long PART_LENGTH = 10 * 1024 * 1024;
 

@@ -204,7 +204,7 @@ public class RetryWrap {
     }
 
     public static boolean retry(int r) {
-        if (RetryWrap.RETRY_COUNT > 0) { // -1 - infinite
+        if (RetryWrap.RETRY_COUNT >= 0) { // -1 - infinite
             if (r > RetryWrap.RETRY_COUNT)
                 return false;
         }

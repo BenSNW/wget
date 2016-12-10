@@ -12,9 +12,7 @@ import org.apache.commons.io.FileUtils;
 
 import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.URLInfo;
-import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
-import com.github.axet.wget.info.ex.DownloadRetry;
 
 public class DirectRange extends Direct {
 
