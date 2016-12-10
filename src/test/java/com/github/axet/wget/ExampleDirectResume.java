@@ -17,7 +17,6 @@ public class ExampleDirectResume {
             // get file remote information
             DownloadInfo info = new DownloadInfo(url);
             info.extract();
-            info.enableMultipart();
             // initialize wget object
             WGet w = new WGet(info, targetFile);
             // single thread download. will return here only when file download

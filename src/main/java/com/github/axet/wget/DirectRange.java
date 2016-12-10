@@ -14,6 +14,7 @@ import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.URLInfo;
 import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
+import com.github.axet.wget.info.ex.DownloadRetry;
 
 public class DirectRange extends Direct {
 
@@ -80,8 +81,6 @@ public class DirectRange extends Direct {
         notify.run();
         try {
             RetryWrap.wrap(stop, new RetryWrap.Wrap() {
-                int retry = 0;
-
                 @Override
                 public void proxy() {
                     info.getProxy().set();
@@ -89,12 +88,12 @@ public class DirectRange extends Direct {
 
                 @Override
                 public void resume() {
-                    retry = 0;
+                    info.setRetry(0);
                 }
 
                 @Override
                 public void error(Throwable e) {
-                    retry = retry + 1;
+                    info.setRetry(info.getRetry() + 1);
                 }
 
                 @Override
@@ -108,7 +107,7 @@ public class DirectRange extends Direct {
                 public boolean retry(int delay, Throwable e) {
                     info.setDelay(delay, e);
                     notify.run();
-                    return RetryWrap.retry(retry);
+                    return RetryWrap.retry(info.getRetry());
                 }
 
                 @Override
@@ -117,18 +116,15 @@ public class DirectRange extends Direct {
                     notify.run();
                 }
             });
-
             info.setState(URLInfo.States.DONE);
             notify.run();
         } catch (DownloadInterruptedError e) {
             info.setState(URLInfo.States.STOP);
             notify.run();
-
             throw e;
         } catch (RuntimeException e) {
             info.setState(URLInfo.States.ERROR);
             notify.run();
-
             throw e;
         }
     }
