@@ -1,5 +1,6 @@
 package com.github.axet.wget.info;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +15,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  */
 @XStreamAlias("DownloadInfo")
-public class DownloadInfo extends URLInfo {
-
+public class DownloadInfo extends URLInfo implements Serializable {
+    private static final long serialVersionUID = 1952592930771906713L;
+    
     public static long PART_LENGTH = 10 * 1024 * 1024;
 
     @XStreamAlias("DownloadInfoPart")

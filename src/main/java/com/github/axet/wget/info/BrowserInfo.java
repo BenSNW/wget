@@ -1,5 +1,6 @@
 package com.github.axet.wget.info;
 
+import java.io.Serializable;
 import java.net.URL;
 
 /**
@@ -8,7 +9,9 @@ import java.net.URL;
  * @author axet
  * 
  */
-public class BrowserInfo {
+public class BrowserInfo implements Serializable {
+    private static final long serialVersionUID = 2603968158067492115L;
+
     static public String USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36";
 
     private String userAgent;
