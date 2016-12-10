@@ -28,5 +28,4 @@ public class DownloadMoved extends DownloadRetry {
             throw new DownloadError(e);
         }
     }
-
 }

@@ -51,7 +51,7 @@ public class ExampleApplicationManaged {
                                 formatSpeed(speedInfo.getAverageSpeed())));
                         break;
                     case RETRYING:
-                        System.out.println(info.getState() + " " + info.getDelay());
+                        System.out.println(info.getState() + " r:" + info.getRetry() + " d:" + info.getDelay());
                         break;
                     case DOWNLOADING:
                         speedInfo.step(info.getCount());
@@ -61,19 +61,22 @@ public class ExampleApplicationManaged {
 
                             String parts = "";
 
-                            for (Part p : info.getParts()) {
-                                switch (p.getState()) {
-                                case DOWNLOADING:
-                                    parts += String.format("Part#%d(%.2f) ", p.getNumber(),
-                                            p.getCount() / (float) p.getLength());
-                                    break;
-                                case ERROR:
-                                case RETRYING:
-                                    parts += String.format("Part#%d(%s) ", p.getNumber(), p.getException().getMessage()
-                                            + " r:" + p.getRetry() + " d:" + p.getDelay());
-                                    break;
-                                default:
-                                    break;
+                            if (info.getParts() != null) { // not null if multipart enabled
+                                for (Part p : info.getParts()) {
+                                    switch (p.getState()) {
+                                    case DOWNLOADING:
+                                        parts += String.format("Part#%d(%.2f) ", p.getNumber(),
+                                                p.getCount() / (float) p.getLength());
+                                        break;
+                                    case ERROR:
+                                    case RETRYING:
+                                        parts += String.format("Part#%d(%s) ", p.getNumber(),
+                                                p.getException().getMessage() + " r:" + p.getRetry() + " d:"
+                                                        + p.getDelay());
+                                        break;
+                                    default:
+                                        break;
+                                    }
                                 }
                             }
 
@@ -98,7 +101,7 @@ public class ExampleApplicationManaged {
             // extract information from the web
             info.extract(stop, notify);
             // enable multipart download
-            info.enableMultipart();
+            // info.enableMultipart();
             // Choice target file or set download folder
             File target = new File("/Users/axet/Downloads/VirtualBox-5.0.16-105871-OSX.dmg");
             // create wget downloader

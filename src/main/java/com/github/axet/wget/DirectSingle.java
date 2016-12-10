@@ -81,8 +81,6 @@ public class DirectSingle extends Direct {
         notify.run();
         try {
             RetryWrap.wrap(stop, new RetryWrap.Wrap() {
-                int retry = 0;
-
                 @Override
                 public void proxy() {
                     info.getProxy().set();
@@ -90,12 +88,12 @@ public class DirectSingle extends Direct {
 
                 @Override
                 public void resume() {
-                    retry = 0;
+                    info.setRetry(0);
                 }
 
                 @Override
                 public void error(Throwable e) {
-                    retry = retry + 1;
+                    info.setRetry(info.getRetry() + 1);
                 }
 
                 @Override
@@ -109,7 +107,7 @@ public class DirectSingle extends Direct {
                 public boolean retry(int delay, Throwable e) {
                     info.setDelay(delay, e);
                     notify.run();
-                    return RetryWrap.retry(retry);
+                    return RetryWrap.retry(info.getRetry());
                 }
 
                 @Override

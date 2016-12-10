@@ -33,10 +33,11 @@ public class WGet {
         /**
          * some socket problem, retyring
          * 
+         * @param retry
          * @param delay
          * @param e
          */
-        public void notifyRetry(int delay, Throwable e);
+        public void notifyRetry(int retry, int delay, Throwable e);
 
         /**
          * start downloading
@@ -168,7 +169,7 @@ public class WGet {
     public static String getHtml(URL source) {
         return getHtml(source, new HtmlLoader() {
             @Override
-            public void notifyRetry(int delay, Throwable e) {
+            public void notifyRetry(int retry, int delay, Throwable e) {
             }
 
             @Override
@@ -184,7 +185,7 @@ public class WGet {
     public static String getHtml(DownloadInfo info) {
         return getHtml(info, new HtmlLoader() {
             @Override
-            public void notifyRetry(int delay, Throwable e) {
+            public void notifyRetry(int retry, int delay, Throwable e) {
             }
 
             @Override
@@ -204,7 +205,6 @@ public class WGet {
     public static String getHtml(final DownloadInfo source, final HtmlLoader load, final AtomicBoolean stop) {
         String html = RetryWrap.wrap(stop, new RetryWrap.WrapReturn<String>() {
             DownloadInfo info = source;
-            int retry = 0;
 
             @Override
             public void proxy() {
@@ -213,18 +213,18 @@ public class WGet {
 
             @Override
             public void resume() {
-                retry = 0;
+                info.setRetry(0);
             }
 
             @Override
             public void error(Throwable e) {
-                retry = retry + 1;
+                info.setRetry(info.getRetry() + 1);
             }
 
             @Override
             public boolean retry(int delay, Throwable e) {
-                load.notifyRetry(delay, e);
-                return RetryWrap.retry(retry);
+                load.notifyRetry(info.getRetry(), delay, e);
+                return RetryWrap.retry(info.getRetry());
             }
 
             @Override

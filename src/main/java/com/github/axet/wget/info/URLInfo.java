@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
 import com.github.axet.wget.RetryWrap;
 import com.github.axet.wget.WGet;
-import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadRetry;
 
 /**
@@ -25,12 +25,12 @@ public class URLInfo extends BrowserInfo {
     /**
      * connect socket timeout
      */
-    public static int CONNECT_TIMEOUT = 10000;
+    public static int CONNECT_TIMEOUT = 10 * 1000;
 
     /**
      * read socket timeout
      */
-    public static int READ_TIMEOUT = 10000;
+    public static int READ_TIMEOUT = 10 * 1000;
 
     /**
      * source url
@@ -84,6 +84,10 @@ public class URLInfo extends BrowserInfo {
      * retrying delay;
      */
     private int delay;
+    /**
+     * retry count
+     */
+    private int retry;
 
     private ProxyInfo proxy;
 
@@ -129,7 +133,6 @@ public class URLInfo extends BrowserInfo {
 
             conn = RetryWrap.wrap(stop, new RetryWrap.WrapReturn<HttpURLConnection>() {
                 URL url = source;
-                int retry = 0;
 
                 @Override
                 public void proxy() {
@@ -138,12 +141,12 @@ public class URLInfo extends BrowserInfo {
 
                 @Override
                 public void resume() {
-                    retry = 0;
+                    setRetry(0);
                 }
 
                 @Override
                 public void error(Throwable e) {
-                    retry = retry + 1;
+                    setRetry(getRetry() + 1);
                 }
 
                 @Override
@@ -208,7 +211,7 @@ public class URLInfo extends BrowserInfo {
                 public boolean retry(int d, Throwable ee) {
                     setDelay(d, ee);
                     notify.run();
-                    return RetryWrap.retry(retry);
+                    return RetryWrap.retry(getRetry());
                 }
 
                 @Override
@@ -384,4 +387,11 @@ public class URLInfo extends BrowserInfo {
         this.cookie = cookie;
     }
 
+    synchronized public int getRetry() {
+        return retry;
+    }
+
+    synchronized public void setRetry(int retry) {
+        this.retry = retry;
+    }
 }

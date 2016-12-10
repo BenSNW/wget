@@ -171,18 +171,20 @@ public class DirectMultipart extends Direct {
                         @Override
                         public void resume() {
                             p.setRetry(0);
+                            info.setRetry(0); // show smallest retry number
                         }
 
                         @Override
                         public void error(Throwable e) {
                             p.setRetry(p.getRetry() + 1);
-                            if (RetryWrap.RETRY_COUNT > 0) { // -1 - infinite
-                                for (Part i : active) {
-                                    if (i.getRetry() <= RetryWrap.RETRY_COUNT)
-                                        return; // one active download do not reach retry count, exit
-                                }
-                                fatal(true);
+                            int min = Integer.MAX_VALUE;
+                            for (Part i : active) {
+                                min = Math.min(min, i.getRetry());
                             }
+                            info.setRetry(min);
+                            if (RetryWrap.retry(min))
+                                return; // keep retrying
+                            fatal(true);
                         }
 
                         @Override
