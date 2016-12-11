@@ -22,6 +22,8 @@ import com.github.axet.wget.info.ex.DownloadRetry;
  * 
  */
 public class URLInfo extends BrowserInfo {
+    private static final long serialVersionUID = 7260247341480497184L;
+
     /**
      * connect socket timeout
      */

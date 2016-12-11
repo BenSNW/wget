@@ -111,11 +111,7 @@ public class ExampleApplicationManaged {
             // will blocks until download finishes
             w.download(stop, notify);
         } catch (DownloadMultipartError e) {
-            for (Part p : e.getInfo().getParts()) {
-                Throwable ee = p.getException();
-                if (ee != null)
-                    ee.printStackTrace();
-            }
+            throw e;
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
