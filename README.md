@@ -267,7 +267,7 @@ public class OptionsList {
 
 ## Android Studio
 
-```xml
+```gradle
     compile ('com.github.axet:wget:1.4.2') {
         exclude group: 'com.thoughtworks.xstream', module: 'xstream'
     }
