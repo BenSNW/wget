@@ -11,9 +11,13 @@ public class DownloadMultipartError extends DownloadError {
 
     DownloadInfo info;
 
+    public DownloadMultipartError(Throwable e, DownloadInfo info) {
+        super(e);
+        this.info = info;
+    }
+
     public DownloadMultipartError(DownloadInfo info) {
         super("Multipart error");
-
         this.info = info;
     }
 
