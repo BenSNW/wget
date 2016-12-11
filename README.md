@@ -261,6 +261,15 @@ public class OptionsList {
 <dependency>
   <groupId>com.github.axet</groupId>
   <artifactId>wget</artifactId>
-  <version>1.4.1</version>
+  <version>1.4.2</version>
 </dependency>
+```
+
+## Android Studio
+
+```xml
+    compile ('com.github.axet:wget:1.4.2') {
+        exclude group: 'com.thoughtworks.xstream', module: 'xstream'
+    }
+    compile "com.thoughtworks.xstream:xstream:1.3.1"
 ```
