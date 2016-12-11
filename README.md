@@ -271,5 +271,5 @@ public class OptionsList {
     compile ('com.github.axet:wget:1.4.2') {
         exclude group: 'com.thoughtworks.xstream', module: 'xstream'
     }
-    compile "com.thoughtworks.xstream:xstream:1.3.1"
+    compile 'com.thoughtworks.xstream:xstream:1.3.1'
 ```
