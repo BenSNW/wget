@@ -4,10 +4,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import com.github.axet.wget.info.BrowserInfo;
-import com.github.axet.wget.info.DownloadInfo;
-import com.github.axet.wget.info.URLInfo;
-
 public class ExampleDirectDownload {
 
     public static void main(String[] args) {
