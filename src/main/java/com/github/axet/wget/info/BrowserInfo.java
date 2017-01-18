@@ -36,4 +36,9 @@ public class BrowserInfo implements Serializable {
     synchronized public void setReferer(URL referer) {
         this.referer = referer;
     }
+
+    synchronized public void copy(BrowserInfo old) {
+        setReferer(old.getReferer());
+        setUserAgent(old.getUserAgent());
+    }
 }

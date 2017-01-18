@@ -124,7 +124,7 @@ public class DirectMultipart extends Direct {
 
     }
 
-    protected void moved(Part p, URL url, Runnable notify) {
+    protected void moved(Part p, URL url, AtomicBoolean stop, Runnable notify) {
         p.setState(States.RETRYING);
         notify.run();
     }
@@ -200,7 +200,7 @@ public class DirectMultipart extends Direct {
 
                         @Override
                         public void moved(URL url) {
-                            DirectMultipart.this.moved(p, url, notify);
+                            DirectMultipart.this.moved(p, url, stop, notify);
                         }
                     });
                     p.setState(States.DONE);
