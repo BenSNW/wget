@@ -62,6 +62,20 @@ public class DownloadInfo extends URLInfo {
          */
         private int retry;
 
+        public Part() {
+        }
+
+        public Part(Part copy) {
+            this.start = copy.start;
+            this.end = copy.end;
+            this.number = copy.number;
+            this.count = copy.count;
+            this.state = copy.state;
+            this.exception = copy.exception;
+            this.delay = copy.delay;
+            this.retry = copy.retry;
+        }
+
         synchronized public long getStart() {
             return start;
         }
@@ -278,8 +292,11 @@ public class DownloadInfo extends URLInfo {
      */
     synchronized public void copy(DownloadInfo oldSource) {
         super.copy(oldSource);
-        setCount(oldSource.getCount());
-        parts = oldSource.parts;
+        count = oldSource.count;
+        parts = new ArrayList<Part>();
+        for (int i = 0; i < oldSource.parts.size(); i++) {
+            parts.add(new Part(parts.get(i)));
+        }
         partLength = oldSource.partLength;
     }
 

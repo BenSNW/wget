@@ -393,6 +393,9 @@ public class URLInfo extends BrowserInfo {
         this.retry = retry;
     }
     
+    /**
+     * copy resume data from oldSource;
+     */
     synchronized public void copy(URLInfo old) {
         super.copy(old);
         setProxy(old.getProxy());
