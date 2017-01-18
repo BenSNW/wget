@@ -16,7 +16,6 @@ import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.DownloadInfo.Part;
 import com.github.axet.wget.info.DownloadInfo.Part.States;
 import com.github.axet.wget.info.URLInfo;
-import com.github.axet.wget.info.ex.DownloadError;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 import com.github.axet.wget.info.ex.DownloadMultipartError;
 import com.github.axet.wget.info.ex.DownloadRetry;
@@ -125,6 +124,11 @@ public class DirectMultipart extends Direct {
 
     }
 
+    protected void moved(Part p, URL url, Runnable notify) {
+        p.setState(States.RETRYING);
+        notify.run();
+    }
+
     boolean fatal() {
         synchronized (lock) {
             return fatal;
@@ -196,8 +200,7 @@ public class DirectMultipart extends Direct {
 
                         @Override
                         public void moved(URL url) {
-                            p.setState(States.RETRYING);
-                            notify.run();
+                            DirectMultipart.this.moved(p, url, notify);
                         }
                     });
                     p.setState(States.DONE);

@@ -16,7 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.github.axet.wget.info.DownloadInfo;
-import com.github.axet.wget.info.ex.DownloadError;
+import com.github.axet.wget.info.DownloadInfo.Part;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class WGet {
@@ -92,11 +92,49 @@ public class WGet {
 
     Direct createDirect() {
         if (info.multipart()) {
-            return new DirectMultipart(info, targetFile);
+            return new DirectMultipart(info, targetFile) {
+                @Override
+                protected void moved(Part p, URL url, Runnable notify) {
+                    DownloadInfo old = info;
+                    info = new DownloadInfo(url);
+                    if (old.resume(info)) {
+                        info.copy(old);
+                    } else {
+                        FileUtils.deleteQuietly(targetFile);
+                    }
+                    if (!info.getRange()) { // rare case, when new source does not have range supported
+                        create();
+                        fatal(true); // stop current download engine
+                    }
+                    super.moved(p, url, notify);
+                }
+            };
         } else if (info.getRange()) {
-            return new DirectRange(info, targetFile);
+            return new DirectRange(info, targetFile) {
+                @Override
+                protected void moved(URL url, Runnable notify) {
+                    DownloadInfo old = info;
+                    info = new DownloadInfo(url);
+                    if (old.resume(info)) {
+                        info.copy(old);
+                    } else {
+                        FileUtils.deleteQuietly(targetFile);
+                    }
+                    super.moved(url, notify);
+                }
+            };
         } else {
-            return new DirectSingle(info, targetFile);
+            return new DirectSingle(info, targetFile) {
+                @Override
+                protected void moved(URL url, Runnable notify) {
+                    if (targetFile.exists())
+                        targetFile.delete();
+                    DownloadInfo old = info;
+                    info = new DownloadInfo(url);
+                    info.setReferer(old.getReferer());
+                    super.moved(url, notify);
+                }
+            };
         }
     }
 

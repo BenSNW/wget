@@ -110,8 +110,7 @@ public class DirectRange extends Direct {
 
                 @Override
                 public void moved(URL url) {
-                    info.setState(URLInfo.States.RETRYING);
-                    notify.run();
+                    DirectRange.this.moved(url, notify);
                 }
             });
             info.setState(URLInfo.States.DONE);
@@ -146,5 +145,10 @@ public class DirectRange extends Direct {
                 return false;
         }
         return true;
+    }
+    
+    protected void moved(URL url, Runnable notify) {
+        info.setState(URLInfo.States.RETRYING);
+        notify.run();
     }
 }
