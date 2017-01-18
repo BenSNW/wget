@@ -269,6 +269,7 @@ public class DownloadInfo extends URLInfo {
             // one source has a have old is not
             return false;
         }
+
         return true;
     }
 
@@ -278,6 +279,7 @@ public class DownloadInfo extends URLInfo {
     synchronized public void copy(DownloadInfo oldSource) {
         setCount(oldSource.getCount());
         parts = oldSource.parts;
+        partLength = oldSource.partLength;
     }
 
     public long getCount() {

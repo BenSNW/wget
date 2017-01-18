@@ -219,9 +219,7 @@ public class URLInfo extends BrowserInfo {
                 @Override
                 public void moved(URL u) {
                     setReferer(url);
-
                     url = u;
-
                     setState(States.RETRYING);
                     notify.run();
                 }
@@ -235,7 +233,6 @@ public class URLInfo extends BrowserInfo {
                 //
                 // 1) contentDisposition="attachment;filename="ap61.ram"";
                 // 2) contentDisposition="attachment;filename=ap61.ram";
-
                 Pattern cp = Pattern.compile("filename=[\"]*([^\"]*)[\"]*");
                 Matcher cm = cp.matcher(contentDisposition);
                 if (cm.find())
@@ -248,7 +245,6 @@ public class URLInfo extends BrowserInfo {
             notify.run();
         } catch (RuntimeException e) {
             setState(States.ERROR, e);
-
             throw e;
         }
     }

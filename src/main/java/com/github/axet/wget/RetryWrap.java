@@ -197,8 +197,7 @@ public class RetryWrap {
             throw new ProxyAuth(c);
         case HttpURLConnection.HTTP_FORBIDDEN:
             throw new DownloadIOCodeError(code);
-        case 416:
-            // HTTP Error 416 - Requested Range Not Satisfiable
+        case 416: // HTTP Error 416 - Requested Range Not Satisfiable
             throw new DownloadIOCodeError(416);
         }
     }
