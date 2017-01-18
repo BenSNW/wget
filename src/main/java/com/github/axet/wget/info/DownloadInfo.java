@@ -277,12 +277,10 @@ public class DownloadInfo extends URLInfo {
      * copy resume data from oldSource;
      */
     synchronized public void copy(DownloadInfo oldSource) {
+        super.copy(oldSource);
         setCount(oldSource.getCount());
         parts = oldSource.parts;
         partLength = oldSource.partLength;
-        setReferer(oldSource.getReferer());
-        setProxy(oldSource.getProxy());
-        setUserAgent(oldSource.getUserAgent());
     }
 
     public long getCount() {
