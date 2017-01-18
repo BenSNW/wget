@@ -41,7 +41,7 @@ public class BrowserInfo implements Serializable {
      * copy resume data from oldSource;
      */
     synchronized public void copy(BrowserInfo old) {
-        setReferer(old.getReferer());
-        setUserAgent(old.getUserAgent());
+        referer = old.referer;
+        userAgent = old.userAgent;
     }
 }

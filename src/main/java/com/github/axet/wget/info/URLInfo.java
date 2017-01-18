@@ -398,6 +398,6 @@ public class URLInfo extends BrowserInfo {
      */
     synchronized public void copy(URLInfo old) {
         super.copy(old);
-        setProxy(old.getProxy());
+        proxy = new ProxyInfo(old.proxy);
     }
 }

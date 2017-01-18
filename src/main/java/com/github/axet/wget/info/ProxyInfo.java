@@ -13,6 +13,11 @@ public class ProxyInfo {
     // in main app.
     public Authenticator auth;
 
+    public ProxyInfo(ProxyInfo copy) {
+        this.proxy = copy.proxy;
+        this.auth = copy.auth;
+    }
+
     public ProxyInfo(Proxy p) {
         this.proxy = p;
     }
