@@ -94,10 +94,11 @@ public class WGet {
         if (info.multipart()) {
             return new DirectMultipart(info, targetFile) {
                 @Override
-                protected void moved(Part p, URL url, Runnable notify) {
+                protected void moved(Part p, URL url, AtomicBoolean stop, Runnable notify) {
                     DownloadInfo old = info;
                     info = new DownloadInfo(url);
-                    if (old.resume(info)) {
+                    info.extract(stop, notify);
+                    if (info.resume(old)) {
                         info.copy(old);
                     } else {
                         FileUtils.deleteQuietly(targetFile);
@@ -106,33 +107,35 @@ public class WGet {
                         create();
                         fatal(true); // stop current download engine
                     }
-                    super.moved(p, url, notify);
+                    super.moved(p, url, stop, notify);
                 }
             };
         } else if (info.getRange()) {
             return new DirectRange(info, targetFile) {
                 @Override
-                protected void moved(URL url, Runnable notify) {
+                protected void moved(URL url, AtomicBoolean stop, Runnable notify) {
                     DownloadInfo old = info;
                     info = new DownloadInfo(url);
+                    info.extract(stop, notify);
                     if (old.resume(info)) {
                         info.copy(old);
                     } else {
                         FileUtils.deleteQuietly(targetFile);
                     }
-                    super.moved(url, notify);
+                    super.moved(url, stop, notify);
                 }
             };
         } else {
             return new DirectSingle(info, targetFile) {
                 @Override
-                protected void moved(URL url, Runnable notify) {
+                protected void moved(URL url, AtomicBoolean stop, Runnable notify) {
                     if (targetFile.exists())
                         targetFile.delete();
                     DownloadInfo old = info;
                     info = new DownloadInfo(url);
+                    info.extract(stop, notify);
                     info.setReferer(old.getReferer());
-                    super.moved(url, notify);
+                    super.moved(url, stop, notify);
                 }
             };
         }

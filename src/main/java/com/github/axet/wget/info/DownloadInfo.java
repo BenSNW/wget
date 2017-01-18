@@ -235,37 +235,37 @@ public class DownloadInfo extends URLInfo {
      * Check if we can continue download a file from new source. Check if new souce has the same file length, title. and
      * supports for range
      * 
-     * @param newSource
-     *            new source
+     * @param oldInfo
+     *            old info source
      * @return true - possible to resume from new location
      */
-    synchronized public boolean resume(DownloadInfo newSource) {
-        if (!newSource.getRange())
+    synchronized public boolean resume(DownloadInfo oldInfo) {
+        if (!oldInfo.getRange())
             return false;
 
-        if (newSource.getContentFilename() != null && this.getContentFilename() != null) {
-            if (!newSource.getContentFilename().equals(this.getContentFilename()))
+        if (oldInfo.getContentFilename() != null && this.getContentFilename() != null) {
+            if (!oldInfo.getContentFilename().equals(this.getContentFilename()))
                 // one source has different name
                 return false;
-        } else if (newSource.getContentFilename() != null || this.getContentFilename() != null) {
+        } else if (oldInfo.getContentFilename() != null || this.getContentFilename() != null) {
             // one source has a have old is not
             return false;
         }
 
-        if (newSource.getLength() != null && this.getLength() != null) {
-            if (!newSource.getLength().equals(this.getLength()))
+        if (oldInfo.getLength() != null && this.getLength() != null) {
+            if (!oldInfo.getLength().equals(this.getLength()))
                 // one source has different length
                 return false;
-        } else if (newSource.getLength() != null || this.getLength() != null) {
+        } else if (oldInfo.getLength() != null || this.getLength() != null) {
             // one source has length, other is not
             return false;
         }
 
-        if (newSource.getContentType() != null && this.getContentType() != null) {
-            if (!newSource.getContentType().equals(this.getContentType()))
+        if (oldInfo.getContentType() != null && this.getContentType() != null) {
+            if (!oldInfo.getContentType().equals(this.getContentType()))
                 // one source has different getContentType
                 return false;
-        } else if (newSource.getContentType() != null || this.getContentType() != null) {
+        } else if (oldInfo.getContentType() != null || this.getContentType() != null) {
             // one source has a have old is not
             return false;
         }
@@ -280,6 +280,9 @@ public class DownloadInfo extends URLInfo {
         setCount(oldSource.getCount());
         parts = oldSource.parts;
         partLength = oldSource.partLength;
+        setReferer(oldSource.getReferer());
+        setProxy(oldSource.getProxy());
+        setUserAgent(oldSource.getUserAgent());
     }
 
     public long getCount() {
