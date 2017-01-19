@@ -124,11 +124,6 @@ public class DirectMultipart extends Direct {
 
     }
 
-    protected void moved(Part p, URL url, AtomicBoolean stop, Runnable notify) {
-        p.setState(States.RETRYING);
-        notify.run();
-    }
-
     boolean fatal() {
         synchronized (lock) {
             return fatal;
@@ -200,7 +195,13 @@ public class DirectMultipart extends Direct {
 
                         @Override
                         public void moved(URL url) {
-                            DirectMultipart.this.moved(p, url, stop, notify);
+                            DownloadInfo old = info;
+                            info = new DownloadInfo(url);
+                            info.extract(stop, notify);
+                            if (info.canResume(old))
+                                info.resume(old);
+                            p.setState(States.RETRYING);
+                            notify.run();
                         }
                     });
                     p.setState(States.DONE);

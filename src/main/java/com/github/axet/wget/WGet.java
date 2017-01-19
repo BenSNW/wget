@@ -16,7 +16,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import com.github.axet.wget.info.DownloadInfo;
-import com.github.axet.wget.info.DownloadInfo.Part;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class WGet {
@@ -92,52 +91,11 @@ public class WGet {
 
     Direct createDirect() {
         if (info.multipart()) {
-            return new DirectMultipart(info, targetFile) {
-                @Override
-                protected void moved(Part p, URL url, AtomicBoolean stop, Runnable notify) {
-                    DownloadInfo old = info;
-                    info = new DownloadInfo(url);
-                    info.extract(stop, notify);
-                    if (info.resume(old)) {
-                        info.copy(old);
-                    } else {
-                        FileUtils.deleteQuietly(targetFile);
-                    }
-                    if (!info.getRange()) { // rare case, when new source does not have range supported
-                        create();
-                        fatal(true); // stop current download engine
-                    }
-                    super.moved(p, url, stop, notify);
-                }
-            };
+            return new DirectMultipart(info, targetFile);
         } else if (info.getRange()) {
-            return new DirectRange(info, targetFile) {
-                @Override
-                protected void moved(URL url, AtomicBoolean stop, Runnable notify) {
-                    DownloadInfo old = info;
-                    info = new DownloadInfo(url);
-                    info.extract(stop, notify);
-                    if (old.resume(info)) {
-                        info.copy(old);
-                    } else {
-                        FileUtils.deleteQuietly(targetFile);
-                    }
-                    super.moved(url, stop, notify);
-                }
-            };
+            return new DirectRange(info, targetFile);
         } else {
-            return new DirectSingle(info, targetFile) {
-                @Override
-                protected void moved(URL url, AtomicBoolean stop, Runnable notify) {
-                    if (targetFile.exists())
-                        targetFile.delete();
-                    DownloadInfo old = info;
-                    info = new DownloadInfo(url);
-                    info.extract(stop, notify);
-                    info.setReferer(old.getReferer());
-                    super.moved(url, stop, notify);
-                }
-            };
+            return new DirectSingle(info, targetFile);
         }
     }
 
@@ -147,13 +105,17 @@ public class WGet {
         return calcName(info, target);
     }
 
+    /**
+     * Generate file name
+     * 
+     * @param info
+     *            download info
+     * @param target
+     *            1) can point to directory - generate exclusive (1) name. 2) to existing file 3) to non existing file
+     * 
+     * @return
+     */
     public static File calcName(DownloadInfo info, File target) {
-        // target -
-        // 1) can point to directory.
-        // - generate exclusive (1) name.
-        // 2) to exisiting file
-        // 3) to non existing file
-
         String name = null;
 
         name = info.getContentFilename();

@@ -253,7 +253,7 @@ public class DownloadInfo extends URLInfo {
      *            old info source
      * @return true - possible to resume from new location
      */
-    synchronized public boolean resume(DownloadInfo oldInfo) {
+    synchronized public boolean canResume(DownloadInfo oldInfo) {
         if (!oldInfo.getRange())
             return false;
 
@@ -290,14 +290,14 @@ public class DownloadInfo extends URLInfo {
     /**
      * copy resume data from oldSource;
      */
-    synchronized public void copy(DownloadInfo oldSource) {
-        super.copy(oldSource);
-        count = oldSource.count;
+    synchronized public void resume(DownloadInfo oldSource) {
+        super.resume(oldSource);
         parts = new ArrayList<Part>();
         for (int i = 0; i < oldSource.parts.size(); i++) {
             parts.add(new Part(parts.get(i)));
         }
         partLength = oldSource.partLength;
+        count = oldSource.count;
     }
 
     public long getCount() {
