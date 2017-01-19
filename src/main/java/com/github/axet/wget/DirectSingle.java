@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.axet.wget.info.DownloadInfo;
 import com.github.axet.wget.info.URLInfo;
+import com.github.axet.wget.info.DownloadInfo.Part.States;
 import com.github.axet.wget.info.ex.DownloadInterruptedError;
 
 public class DirectSingle extends Direct {
@@ -111,7 +112,13 @@ public class DirectSingle extends Direct {
 
                 @Override
                 public void moved(URL url) {
-                    DirectSingle.this.moved(url, stop, notify);
+                    DownloadInfo old = info;
+                    info = new DownloadInfo(url);
+                    info.extract(stop, notify);
+                    if (info.canResume(old))
+                        info.resume(old);
+                    info.setState(URLInfo.States.RETRYING);
+                    notify.run();
                 }
             });
             info.setState(URLInfo.States.DONE);
@@ -145,10 +152,5 @@ public class DirectSingle extends Direct {
                 return false;
         }
         return true;
-    }
-
-    protected void moved(URL url, AtomicBoolean stop, Runnable notify) {
-        info.setState(URLInfo.States.RETRYING);
-        notify.run();
     }
 }
