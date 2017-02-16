@@ -35,9 +35,14 @@ public class URLInfo extends BrowserInfo {
     public static int READ_TIMEOUT = 10 * 1000;
 
     /**
-     * source url
+     * source url (set by user)
      */
     private URL source;
+
+    /**
+     * download url (if redirected/moved)
+     */
+    protected URL url;
 
     /**
      * have been extracted?
@@ -95,11 +100,10 @@ public class URLInfo extends BrowserInfo {
 
     public URLInfo(URL source) {
         this.source = source;
+        this.url = source;
     }
 
     public HttpURLConnection openConnection() throws IOException {
-        URL url = getSource();
-
         HttpURLConnection conn;
 
         if (getProxy() != null) {
@@ -134,8 +138,6 @@ public class URLInfo extends BrowserInfo {
             HttpURLConnection conn;
 
             conn = RetryWrap.wrap(stop, new RetryWrap.WrapReturn<HttpURLConnection>() {
-                URL url = source;
-
                 @Override
                 public void proxy() {
                     getProxy().set();
@@ -153,19 +155,15 @@ public class URLInfo extends BrowserInfo {
 
                 @Override
                 public HttpURLConnection download() throws IOException {
-                    return download(new URLInfo(url));
-                }
-
-                HttpURLConnection download(URLInfo url) throws IOException {
                     setState(States.EXTRACTING);
                     notify.run();
 
                     try {
-                        return meta(extractRange(url));
+                        return meta(extractRange());
                     } catch (DownloadRetry e) {
                         throw e;
                     } catch (RuntimeException e) {
-                        return meta(extractNormal(url));
+                        return meta(extractNormal());
                     }
                 }
 
@@ -187,19 +185,14 @@ public class URLInfo extends BrowserInfo {
                                 String[] vv = content.split(";");
                                 if (vv.length > 1) {
                                     String urlmeta = vv[1];
-                                    String[] url = urlmeta.split("url=");
-                                    if (url.length > 1) {
-                                        URLInfo info = new URLInfo(new URL(url[1]));
-                                        info.setCookie(conn.getHeaderField("Set-cookie"));
-                                        info.setReferer(getSource());
-                                        HttpURLConnection conn2 = download(info);
-
-                                        setReferer(info.getReferer());
-                                        source = info.getSource();
-                                        if (info.getCookie() != null)
-                                            setCookie(info.getCookie()); // TODO sholud we merge cookies?
-
-                                        return conn2;
+                                    String[] uu = urlmeta.split("url=");
+                                    if (uu.length > 1) {
+                                        setReferer(url);
+                                        url = new URL(uu[1]);
+                                        String c = conn.getHeaderField("Set-cookie");
+                                        if (c != null)
+                                            setCookie(c);
+                                        return download();
                                     }
                                 }
                             }
@@ -258,8 +251,8 @@ public class URLInfo extends BrowserInfo {
     }
 
     // if range failed - do plain download with no retrys's
-    protected HttpURLConnection extractRange(URLInfo url) throws IOException {
-        HttpURLConnection conn = url.openConnection();
+    protected HttpURLConnection extractRange() throws IOException {
+        HttpURLConnection conn = openConnection();
 
         // may raise an exception if not supported by server
         conn.setRequestProperty("Range", "bytes=" + 0 + "-" + 0);
@@ -284,8 +277,8 @@ public class URLInfo extends BrowserInfo {
     }
 
     // if range failed - do plain download with no retrys's
-    protected HttpURLConnection extractNormal(URLInfo url) throws IOException {
-        HttpURLConnection conn = url.openConnection();
+    protected HttpURLConnection extractNormal() throws IOException {
+        HttpURLConnection conn = openConnection();
 
         setRange(false);
 
